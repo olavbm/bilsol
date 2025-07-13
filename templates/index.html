@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Vacation Helper</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>Car Vacation Helper</h1>
+        <p>Find good weather within driving distance</p>
+        
+        <div class="location-section">
+            <h2>Your Location</h2>
+            <button id="useLocation" class="location-btn">Use My Location</button>
+            <p class="or">or</p>
+            <input type="text" id="manualLocation" placeholder="Enter city or address" class="location-input">
+            <div id="locationResult" class="location-result"></div>
+        </div>
+        
+        <div class="distance-section">
+            <h2>Driving Distance</h2>
+            <select id="distance" class="distance-select">
+                <option value="100">100 km</option>
+                <option value="200" selected>200 km</option>
+                <option value="500">500 km</option>
+            </select>
+        </div>
+        
+        <div class="map-section">
+            <h2>Map</h2>
+            <div id="map"></div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

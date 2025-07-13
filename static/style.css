@@ -1,0 +1,146 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    min-height: 100vh;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+p {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #666;
+}
+
+.location-section, .distance-section, .map-section {
+    margin: 30px 0;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+.location-section h2, .distance-section h2, .map-section h2 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.location-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.location-btn:hover {
+    background-color: #2980b9;
+}
+
+.location-btn:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.or {
+    margin: 15px 0;
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.location-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.distance-select {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: white;
+}
+
+.location-result {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.location-found {
+    background-color: #d5f4e6;
+    border: 1px solid #27ae60;
+    color: #27ae60;
+}
+
+.location-manual {
+    background-color: #e8f4f8;
+    border: 1px solid #3498db;
+    color: #2980b9;
+}
+
+.location-error {
+    background-color: #f8d7da;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+}
+
+#map {
+    height: 400px;
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.weather-marker {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #3498db;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.weather-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-weight: bold;
+}
+
+.temperature {
+    font-size: 12px;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.symbol {
+    font-size: 16px;
+    line-height: 1;
+}
