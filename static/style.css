@@ -144,3 +144,34 @@ p {
     font-size: 16px;
     line-height: 1;
 }
+
+.place-type {
+    font-size: 10px;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+/* Different border colors for different place types */
+.place-beach {
+    border-color: #3498db !important;
+}
+
+.place-peak {
+    border-color: #8b4513 !important;
+}
+
+.place-viewpoint {
+    border-color: #9b59b6 !important;
+}
+
+.place-park {
+    border-color: #27ae60 !important;
+}
+
+.place-attraction {
+    border-color: #e74c3c !important;
+}
+
+.place-location {
+    border-color: #f39c12 !important;
+}
