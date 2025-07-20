@@ -314,7 +314,9 @@ out;
             Condition: ${weather.symbol}
         `;
         
-        marker.bindPopup(popupContent);
+        marker.bindPopup(popupContent, {
+            autoPan: false
+        });
         weatherMarkers.push(marker);
     }
     
@@ -455,5 +457,34 @@ out;
         window.mapMoveTimeout = setTimeout(() => {
             loadWeatherForPlacesInViewport();
         }, 1000);
+    });
+    
+    // Enlarge map functionality
+    const enlargeBtn = document.getElementById('enlargeMap');
+    const mapSection = document.querySelector('.map-section');
+    let isEnlarged = false;
+    
+    enlargeBtn.addEventListener('click', function() {
+        if (!isEnlarged) {
+            // Enlarge the map
+            mapSection.classList.add('map-enlarged');
+            enlargeBtn.textContent = '📉 Normal Size';
+            isEnlarged = true;
+            
+            // Trigger map resize after DOM update
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+        } else {
+            // Return to normal size
+            mapSection.classList.remove('map-enlarged');
+            enlargeBtn.textContent = '🔍 Enlarge Map';
+            isEnlarged = false;
+            
+            // Trigger map resize after DOM update
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+        }
     });
 });

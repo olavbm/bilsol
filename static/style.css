@@ -175,3 +175,43 @@ p {
 .place-location {
     border-color: #f39c12 !important;
 }
+
+.enlarge-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 10px;
+    float: right;
+}
+
+.enlarge-btn:hover {
+    background-color: #2980b9;
+}
+
+.map-enlarged {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    background: white;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.map-enlarged #map {
+    height: calc(100vh - 100px);
+    width: 100%;
+}
+
+.map-enlarged .enlarge-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+}
