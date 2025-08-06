@@ -9,28 +9,51 @@
 </head>
 <body>
     <div class="container">
-        <h1>Car Vacation Helper</h1>
-        <p>Find good weather within driving distance</p>
+        <h1>🌤️ Where's the Good Weather?</h1>
+        <p>Find perfect spots for your roadtrip</p>
         
-        <div class="location-section">
-            <h2>Your Location</h2>
-            <button id="useLocation" class="location-btn">Use My Location</button>
-            <p class="or">or</p>
-            <input type="text" id="manualLocation" placeholder="Enter city or address" class="location-input">
-            <div id="locationResult" class="location-result"></div>
-        </div>
-        
-        <div class="distance-section">
-            <h2>Driving Distance</h2>
-            <select id="distance" class="distance-select">
+        <div class="simple-controls">
+            <button id="useLocation" class="big-btn">📍 Use My Location</button>
+            <select id="distance" class="big-select">
                 <option value="100">100 km</option>
                 <option value="200" selected>200 km</option>
                 <option value="500">500 km</option>
             </select>
         </div>
         
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot good"></div>
+                <span>🟢 Perfect for roadtrip</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot okay"></div>
+                <span>🟡 Okay weather</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot bad"></div>
+                <span>🔴 Stay away</span>
+            </div>
+        </div>
+        
+        <div class="animation-controls">
+            <h3>🎬 4-Day Weather Animation</h3>
+            <div class="timeline-controls">
+                <button id="playBtn" class="play-btn">▶️ Play</button>
+                <div class="timeline-scrubber">
+                    <input type="range" id="daySlider" min="0" max="3" value="0" step="1">
+                    <div class="day-labels">
+                        <span>Today</span>
+                        <span>Tomorrow</span>
+                        <span>Day 3</span>
+                        <span>Day 4</span>
+                    </div>
+                </div>
+                <div id="currentDay" class="current-day">Today</div>
+            </div>
+        </div>
+        
         <div class="map-section">
-            <h2>Map</h2>
             <button id="enlargeMap" class="enlarge-btn">🔍 Enlarge Map</button>
             <div id="map"></div>
         </div>

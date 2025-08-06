@@ -5,6 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 Car vacation helper web app that shows weather within driving distance using multiple weather APIs and interactive mapping.
 
+**IMPORTANT: This app is focused on weather exploration only. Do NOT add route planning, trip planning, or routing functionality. Keep it simple as a weather discovery tool for roadtrips.**
+
 ## Development Commands
 
 ### Go Commands

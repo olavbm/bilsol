@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     const useLocationBtn = document.getElementById('useLocation');
-    const manualLocationInput = document.getElementById('manualLocation');
-    const locationResult = document.getElementById('locationResult');
     
     // Initialize map
     const map = L.map('map').setView([59.9139, 10.7522], 8); // Default to Oslo, Norway
@@ -35,20 +33,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // OpenWeatherMap layers - now that we know they work
+    // OpenWeatherMap layers with MAXIMUM visibility for easy weather spotting
     const temperatureLayer = L.tileLayer('https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=97fd1f1317a96a72f3fc8c9a800863db', {
-        attribution: '© OpenWeatherMap - Temperature',
-        opacity: 0.5,
-        maxZoom: 18
+        attribution: '© OpenWeatherMap - Temperature (Hot = Red/Orange)',
+        opacity: 0.95,
+        maxZoom: 18,
+        className: 'weather-temperature-layer'
     });
     
     const precipitationLayer = L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=97fd1f1317a96a72f3fc8c9a800863db', {
-        attribution: '© OpenWeatherMap - Precipitation',
-        opacity: 0.6,
-        maxZoom: 18
+        attribution: '© OpenWeatherMap - Precipitation (Rain = Blue/Purple)', 
+        opacity: 0.95,
+        maxZoom: 18,
+        className: 'weather-precipitation-layer'
     });
     
-    // Add both layers - temperature first (lower opacity), then precipitation
+    // Add both layers - temperature first, then precipitation for better layering
     temperatureLayer.addTo(map);
     precipitationLayer.addTo(map);
     
@@ -72,6 +72,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let weatherMarkers = [];
     let currentLocation = { lat: 59.9139, lon: 10.7522 }; // Default Oslo
     let radiusCircle = null;
+    let forecastData = []; // Store all location forecast data
+    let currentDay = 0;
+    let animationInterval = null;
+    let isPlaying = false;
     
     // Function to calculate zoom level for given radius
     function getZoomForRadius(radiusKm) {
@@ -97,14 +101,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to fetch and display weather
-    async function fetchAndDisplayWeather(lat, lon, placeName = null, placeType = null) {
+    // Function to fetch and store weather forecast data
+    async function fetchAndStoreWeatherForecast(lat, lon, placeName = null, placeType = null) {
         try {
             const response = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
-            const weather = await response.json();
+            const weatherData = await response.json();
             
             if (response.ok) {
-                addWeatherMarker(weather, placeName, placeType);
+                // Store the forecast data for this location
+                forecastData.push({
+                    lat: lat,
+                    lon: lon,
+                    placeName: placeName || 'Location',
+                    placeType: placeType,
+                    forecast: weatherData.forecast
+                });
+                
+                // Add marker for current day (day 0)
+                if (weatherData.forecast && weatherData.forecast.length > 0) {
+                    addWeatherMarkerForDay(weatherData.forecast[currentDay], lat, lon, placeName, placeType);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch weather:', error);
@@ -155,31 +171,65 @@ out;
         }
     }
     
-    // Function to filter out overlapping places
-    function filterOverlappingPlaces(places, minDistanceKm = 5) {
-        const filtered = [];
+    // Function to distribute places evenly across viewport using grid system
+    function distributePlacesEvenly(places, maxPlaces = 12) {
+        if (places.length === 0) return [];
         
-        for (const place of places) {
-            let tooClose = false;
-            
-            for (const existing of filtered) {
-                const distance = calculateDistance(
-                    place.lat, place.lon,
-                    existing.lat, existing.lon
-                );
-                
-                if (distance < minDistanceKm) {
-                    tooClose = true;
-                    break;
-                }
-            }
-            
-            if (!tooClose) {
-                filtered.push(place);
+        const bounds = map.getBounds();
+        const south = bounds.getSouth();
+        const west = bounds.getWest();
+        const north = bounds.getNorth();
+        const east = bounds.getEast();
+        
+        // Create a 4x3 grid for even distribution (12 cells max)
+        const gridRows = 3;
+        const gridCols = 4;
+        const latStep = (north - south) / gridRows;
+        const lonStep = (east - west) / gridCols;
+        
+        // Create grid cells
+        const grid = [];
+        for (let row = 0; row < gridRows; row++) {
+            for (let col = 0; col < gridCols; col++) {
+                grid.push({
+                    row,
+                    col,
+                    south: south + (row * latStep),
+                    north: south + ((row + 1) * latStep),
+                    west: west + (col * lonStep),
+                    east: west + ((col + 1) * lonStep),
+                    places: []
+                });
             }
         }
         
-        return filtered;
+        // Assign places to grid cells
+        places.forEach(place => {
+            for (const cell of grid) {
+                if (place.lat >= cell.south && place.lat < cell.north &&
+                    place.lon >= cell.west && place.lon < cell.east) {
+                    cell.places.push(place);
+                    break;
+                }
+            }
+        });
+        
+        // Pick the best place from each cell (prioritize named places)
+        const distributed = [];
+        grid.forEach(cell => {
+            if (cell.places.length > 0) {
+                // Sort by priority: named places first, then by place type variety
+                cell.places.sort((a, b) => {
+                    const aHasName = a.tags.name ? 1 : 0;
+                    const bHasName = b.tags.name ? 1 : 0;
+                    return bHasName - aHasName;
+                });
+                distributed.push(cell.places[0]);
+            }
+        });
+        
+        console.log(`Grid distribution: ${places.length} places → ${distributed.length} distributed evenly`);
+        return distributed;
     }
     
     // Function to calculate distance between two points in kilometers
@@ -226,36 +276,31 @@ out;
         return minDistance;
     }
     
-    // Function to load weather for interesting places in viewport
+    // Function to load weather forecast for interesting places in viewport
     async function loadWeatherForPlacesInViewport() {
-        // Clear existing weather markers
+        // Clear existing forecast data and markers
+        forecastData = [];
         weatherMarkers.forEach(marker => map.removeLayer(marker));
         weatherMarkers = [];
         
         // Add weather marker for center location
         const center = map.getCenter();
-        fetchAndDisplayWeather(center.lat, center.lng, "Map Center", "location");
+        fetchAndStoreWeatherForecast(center.lat, center.lng, "Map Center", "location");
         
         // Find interesting places in current viewport
         const places = await findInterestingPlacesInViewport();
         
-        // Calculate adaptive minimum distance based on viewport size
-        const adaptiveMinDistance = getAdaptiveMinDistance();
+        // Distribute places evenly across viewport using grid system
+        const distributedPlaces = distributePlacesEvenly(places, 12);
         
-        // Filter out overlapping places using adaptive distance
-        const filteredPlaces = filterOverlappingPlaces(places, adaptiveMinDistance);
+        console.log(`Showing ${distributedPlaces.length} evenly distributed places (from ${places.length} total)`);
         
-        // Limit to max 12 places since we're filtering
-        const limitedPlaces = filteredPlaces.slice(0, 12);
-        
-        console.log(`Showing ${limitedPlaces.length} places (filtered from ${places.length})`);
-        
-        // Load weather for each place with delay to avoid rate limiting
-        limitedPlaces.forEach((place, index) => {
+        // Load weather forecast for each distributed place with delay to avoid rate limiting
+        distributedPlaces.forEach((place, index) => {
             setTimeout(() => {
                 const placeName = place.tags.name || getPlaceTypeLabel(place.tags);
                 const placeType = getPlaceType(place.tags);
-                fetchAndDisplayWeather(place.lat, place.lon, placeName, placeType);
+                fetchAndStoreWeatherForecast(place.lat, place.lon, placeName, placeType);
             }, (index + 1) * 600); // 600ms delay between requests
         });
     }
@@ -291,33 +336,71 @@ out;
         return 'Place';
     }
     
-    // Function to add weather marker to map
-    function addWeatherMarker(weather, placeName = null, placeType = null) {
+    // Simple weather scoring function
+    function getWeatherScore(weather) {
+        const temp = weather.temperature;
+        const symbol = weather.symbol;
+        
+        // Bad weather conditions
+        if (symbol.includes('rain') || symbol.includes('snow') || symbol.includes('sleet') || symbol.includes('fog')) {
+            return 'bad';
+        }
+        
+        // Temperature scoring (ideal range 15-25°C)
+        if (temp >= 15 && temp <= 25 && (symbol.includes('clearsky') || symbol.includes('fair'))) {
+            return 'good';
+        } else if (temp >= 10 && temp <= 30) {
+            return 'okay';
+        } else {
+            return 'bad';
+        }
+    }
+    
+    // Function to add weather marker for a specific day
+    function addWeatherMarkerForDay(dayWeather, lat, lon, placeName = null, placeType = null) {
+        const score = getWeatherScore(dayWeather);
+        const emoji = score === 'good' ? '☀️' : score === 'okay' ? '⛅' : '🌧️';
+        
         const icon = L.divIcon({
-            className: `weather-marker ${placeType ? 'place-' + placeType : ''}`,
-            html: `
-                <div class="weather-content">
-                    <div class="temperature">${Math.round(weather.temperature)}°</div>
-                    <div class="symbol">${getWeatherEmoji(weather.symbol)}</div>
-                    ${placeType ? `<div class="place-type">${getPlaceTypeEmoji(placeType)}</div>` : ''}
-                </div>
-            `,
-            iconSize: [60, 60],
-            iconAnchor: [30, 30]
+            className: `weather-marker ${score}`,
+            html: `<div class="weather-content">${emoji}</div>`,
+            iconSize: [50, 50],
+            iconAnchor: [25, 25]
         });
         
-        const marker = L.marker([weather.lat, weather.lon], { icon: icon }).addTo(map);
+        const marker = L.marker([lat, lon], { icon: icon }).addTo(map);
         
         const popupContent = `
-            <strong>${placeName || 'Weather'}</strong>${placeType ? ` (${getPlaceTypeLabel({[getPlaceCategory(placeType)]: placeType})})` : ''}<br>
-            Temperature: ${weather.temperature.toFixed(1)}°C<br>
-            Condition: ${weather.symbol}
+            <strong>${placeName || 'Location'}</strong><br>
+            Day ${dayWeather.day}: ${Math.round(dayWeather.temperature)}°C<br>
+            Condition: ${getWeatherEmoji(dayWeather.symbol)}<br>
+            Date: ${dayWeather.date}
         `;
         
         marker.bindPopup(popupContent, {
             autoPan: false
         });
         weatherMarkers.push(marker);
+    }
+    
+    // Function to update all markers for a specific day
+    function updateMarkersForDay(day) {
+        // Clear existing markers
+        weatherMarkers.forEach(marker => map.removeLayer(marker));
+        weatherMarkers = [];
+        
+        // Add markers for the selected day
+        forecastData.forEach(locationData => {
+            if (locationData.forecast && locationData.forecast[day]) {
+                addWeatherMarkerForDay(
+                    locationData.forecast[day], 
+                    locationData.lat, 
+                    locationData.lon, 
+                    locationData.placeName, 
+                    locationData.placeType
+                );
+            }
+        });
     }
     
     // Helper function to get emoji for place type
@@ -373,7 +456,7 @@ out;
 
     useLocationBtn.addEventListener('click', function() {
         if (navigator.geolocation) {
-            useLocationBtn.textContent = 'Getting location...';
+            useLocationBtn.textContent = '⏳ Getting location...';
             useLocationBtn.disabled = true;
             
             navigator.geolocation.getCurrentPosition(
@@ -381,13 +464,7 @@ out;
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    locationResult.innerHTML = `
-                        <div class="location-found">
-                            <strong>Location found:</strong><br>
-                            Latitude: ${lat.toFixed(4)}<br>
-                            Longitude: ${lon.toFixed(4)}
-                        </div>
-                    `;
+                    // Location found - no need to show details in simple UI
                     
                     // Update map with current radius
                     const selectedRadius = parseInt(distanceSelect.value);
@@ -405,39 +482,24 @@ out;
                     const currentRadius = parseInt(distanceSelect.value);
                     loadWeatherForLocation(lat, lon, currentRadius);
                     
-                    useLocationBtn.textContent = 'Use My Location';
+                    useLocationBtn.textContent = '📍 Use My Location';
                     useLocationBtn.disabled = false;
                 },
                 function(error) {
-                    locationResult.innerHTML = `
-                        <div class="location-error">
-                            Error: ${error.message}
-                        </div>
-                    `;
-                    useLocationBtn.textContent = 'Use My Location';
-                    useLocationBtn.disabled = false;
+                    // Error handling - just reset button in simple UI
+                    useLocationBtn.textContent = '❌ Location Error';
+                    setTimeout(() => {
+                        useLocationBtn.textContent = '📍 Use My Location';
+                        useLocationBtn.disabled = false;
+                    }, 3000);
                 }
             );
         } else {
-            locationResult.innerHTML = `
-                <div class="location-error">
-                    Geolocation is not supported by this browser.
-                </div>
-            `;
+            useLocationBtn.textContent = '❌ Not Supported';
         }
     });
 
-    manualLocationInput.addEventListener('input', function() {
-        if (this.value.trim()) {
-            locationResult.innerHTML = `
-                <div class="location-manual">
-                    Manual location: ${this.value}
-                </div>
-            `;
-        } else {
-            locationResult.innerHTML = '';
-        }
-    });
+    // Removed manual location input in simplified UI
     
     // Distance selector change handler
     distanceSelect.addEventListener('change', function() {
@@ -457,6 +519,51 @@ out;
         window.mapMoveTimeout = setTimeout(() => {
             loadWeatherForPlacesInViewport();
         }, 1000);
+    });
+    
+    // Animation controls
+    const playBtn = document.getElementById('playBtn');
+    const daySlider = document.getElementById('daySlider');
+    const currentDayLabel = document.getElementById('currentDay');
+    
+    const dayNames = ['Today', 'Tomorrow', 'Day 3', 'Day 4'];
+    
+    // Play/Pause button
+    playBtn.addEventListener('click', function() {
+        if (isPlaying) {
+            // Stop animation
+            clearInterval(animationInterval);
+            isPlaying = false;
+            playBtn.textContent = '▶️ Play';
+            playBtn.classList.remove('playing');
+        } else {
+            // Start animation
+            isPlaying = true;
+            playBtn.textContent = '⏸️ Pause';
+            playBtn.classList.add('playing');
+            
+            animationInterval = setInterval(() => {
+                currentDay = (currentDay + 1) % 4;
+                daySlider.value = currentDay;
+                currentDayLabel.textContent = dayNames[currentDay];
+                updateMarkersForDay(currentDay);
+            }, 2000); // Change day every 2 seconds
+        }
+    });
+    
+    // Day slider
+    daySlider.addEventListener('input', function() {
+        currentDay = parseInt(this.value);
+        currentDayLabel.textContent = dayNames[currentDay];
+        updateMarkersForDay(currentDay);
+        
+        // Stop animation if user manually changes day
+        if (isPlaying) {
+            clearInterval(animationInterval);
+            isPlaying = false;
+            playBtn.textContent = '▶️ Play';
+            playBtn.classList.remove('playing');
+        }
     });
     
     // Enlarge map functionality

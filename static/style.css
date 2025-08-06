@@ -31,17 +31,180 @@ p {
     color: #666;
 }
 
-.location-section, .distance-section, .map-section {
+/* Simplified controls */
+.simple-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
     margin: 30px 0;
     padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fafafa;
+    background-color: #f8f9fa;
+    border-radius: 10px;
 }
 
-.location-section h2, .distance-section h2, .map-section h2 {
-    margin-bottom: 15px;
+.big-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.big-btn:hover {
+    background-color: #218838;
+}
+
+.big-select {
+    padding: 15px 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: white;
+    font-weight: bold;
+}
+
+/* Simple legend */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.legend-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.legend-dot.good {
+    background-color: #28a745;
+}
+
+.legend-dot.okay {
+    background-color: #ffc107;
+}
+
+.legend-dot.bad {
+    background-color: #dc3545;
+}
+
+/* Animation controls */
+.animation-controls {
+    margin: 30px 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.animation-controls h3 {
+    margin: 0 0 15px 0;
     color: #2c3e50;
+    font-size: 18px;
+}
+
+.timeline-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.play-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 100px;
+}
+
+.play-btn:hover {
+    background-color: #218838;
+}
+
+.play-btn.playing {
+    background-color: #dc3545;
+}
+
+.timeline-scrubber {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+    max-width: 300px;
+}
+
+#daySlider {
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: #ddd;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+#daySlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #28a745;
+    cursor: pointer;
+}
+
+#daySlider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #28a745;
+    cursor: pointer;
+    border: none;
+}
+
+.day-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+}
+
+.current-day {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50;
+    min-width: 80px;
+}
+
+.map-section {
+    margin: 20px 0;
 }
 
 .location-btn {
@@ -118,63 +281,34 @@ p {
     border: 1px solid #ddd;
 }
 
+/* Simple weather markers - big colored circles */
 .weather-marker {
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #3498db;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    border: 4px solid rgba(255, 255, 255, 0.8);
+}
+
+.weather-marker.good {
+    background-color: #28a745;
+}
+
+.weather-marker.okay {
+    background-color: #ffc107;
+}
+
+.weather-marker.bad {
+    background-color: #dc3545;
 }
 
 .weather-content {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
-    font-weight: bold;
+    font-size: 24px;
 }
 
-.temperature {
-    font-size: 12px;
-    color: #2c3e50;
-    line-height: 1;
-}
-
-.symbol {
-    font-size: 16px;
-    line-height: 1;
-}
-
-.place-type {
-    font-size: 10px;
-    line-height: 1;
-    margin-top: 2px;
-}
-
-/* Different border colors for different place types */
-.place-beach {
-    border-color: #3498db !important;
-}
-
-.place-peak {
-    border-color: #8b4513 !important;
-}
-
-.place-viewpoint {
-    border-color: #9b59b6 !important;
-}
-
-.place-park {
-    border-color: #27ae60 !important;
-}
-
-.place-attraction {
-    border-color: #e74c3c !important;
-}
-
-.place-location {
-    border-color: #f39c12 !important;
-}
+/* Remove all the complex place-specific styling */
 
 .enlarge-btn {
     background-color: #3498db;
@@ -214,4 +348,32 @@ p {
     top: 20px;
     right: 20px;
     z-index: 1001;
+}
+
+/* Weather overlay enhancements for MAXIMUM visibility - easily spot good weather */
+.leaflet-tile-pane .leaflet-layer:nth-child(2) {
+    /* Temperature layer - extreme warm colors for hot spots */
+    filter: hue-rotate(20deg) saturate(5) contrast(3.5) brightness(1.8) drop-shadow(0 0 3px rgba(255,100,0,0.8));
+    opacity: 0.9 !important;
+}
+
+.leaflet-tile-pane .leaflet-layer:nth-child(3) {
+    /* Precipitation layer - high contrast blue/purple for rain areas */
+    filter: hue-rotate(-60deg) saturate(6) contrast(4) brightness(2) drop-shadow(0 0 3px rgba(0,100,255,0.8));
+    opacity: 0.9 !important;
+    mix-blend-mode: overlay;
+}
+
+/* Class-based targeting with extreme visibility settings */
+.weather-temperature-layer {
+    /* HOT WEATHER = BRIGHT RED/ORANGE GLOW */
+    filter: hue-rotate(25deg) saturate(8) contrast(4.5) brightness(2.2) drop-shadow(0 0 5px rgba(255,69,0,1)) !important;
+    opacity: 0.95 !important;
+}
+
+.weather-precipitation-layer {
+    /* RAIN = INTENSE BLUE/PURPLE HIGHLIGHTING */
+    filter: hue-rotate(-80deg) saturate(10) contrast(5) brightness(2.5) drop-shadow(0 0 5px rgba(30,144,255,1)) !important;
+    opacity: 0.95 !important;
+    mix-blend-mode: overlay !important;
 }
